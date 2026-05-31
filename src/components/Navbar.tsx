@@ -2,14 +2,49 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
 
 const navLinks = [
-  { label: 'Servicios', href: '#servicios' },
-  { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Testimonios', href: '#testimonios' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Servicios',    href: '/#servicios'   },
+  { label: 'Nosotros',     href: '/#nosotros'    },
+  { label: 'Portfolio',    href: '/portfolio'    },
+  { label: 'Testimonios',  href: '/#testimonios' },
+  { label: 'Contacto',     href: '/#contacto'    },
 ]
+
+function NavLinks() {
+  const pathname = usePathname()
+  return (
+    <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }} className="hidden md:flex">
+      {navLinks.map((link) => {
+        const isActive = link.href === '/portfolio' && pathname === '/portfolio'
+        return (
+          <Link
+            key={link.label}
+            href={link.href}
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: '0.9rem',
+              fontWeight: isActive ? 600 : 500,
+              color: isActive ? 'var(--color-primary)' : 'rgba(234, 242, 255, 0.65)',
+              textDecoration: 'none',
+              transition: 'color 0.2s',
+              letterSpacing: '-0.01em',
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = 'var(--color-primary)')}
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = isActive ? 'var(--color-primary)' : 'rgba(234, 242, 255, 0.65)')
+            }
+          >
+            {link.label}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -54,8 +89,8 @@ export default function Navbar() {
         }}
       >
         {/* Logo */}
-        <a
-          href="#"
+        <Link
+          href="/"
           style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none' }}
         >
           <div
@@ -93,38 +128,13 @@ export default function Navbar() {
           >
             Veli Creations
           </span>
-        </a>
+        </Link>
 
         {/* Desktop nav */}
-        <nav
-          style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}
-          className="hidden md:flex"
-        >
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                color: 'rgba(234, 242, 255, 0.65)',
-                textDecoration: 'none',
-                transition: 'color 0.2s',
-                letterSpacing: '-0.01em',
-              }}
-              onMouseEnter={(e) => ((e.target as HTMLElement).style.color = 'var(--color-primary)')}
-              onMouseLeave={(e) =>
-                ((e.target as HTMLElement).style.color = 'rgba(234, 242, 255, 0.65)')
-              }
-            >
-              {link.label}
-            </a>
-          ))}
-          <a href="#contacto" className="btn-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.375rem' }}>
-            Empezar proyecto →
-          </a>
-        </nav>
+        <NavLinks />
+        <Link href="/#contacto" className="btn-primary hidden md:inline-flex" style={{ fontSize: '0.875rem', padding: '0.625rem 1.375rem' }}>
+          Empezar proyecto →
+        </Link>
 
         {/* Mobile burger */}
         <button
@@ -168,7 +178,7 @@ export default function Navbar() {
             }}
           >
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
@@ -180,14 +190,15 @@ export default function Navbar() {
                   textDecoration: 'none',
                   padding: '0.5rem 0',
                   borderBottom: '1px solid var(--color-border-soft)',
+                  display: 'block',
                 }}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
-            <a href="#contacto" className="btn-primary" style={{ textAlign: 'center', marginTop: '0.25rem' }}>
+            <Link href="/#contacto" className="btn-primary" style={{ textAlign: 'center', marginTop: '0.25rem' }}>
               Empezar proyecto →
-            </a>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
