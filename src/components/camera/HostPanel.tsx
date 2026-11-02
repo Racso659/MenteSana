@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { DataConnection, MediaConnection, default as PeerType } from 'peerjs'
 import { Camera, Copy, Check, Radio, Square, Users, ArrowLeft } from 'lucide-react'
-import { ROOM_PREFIX, generateRoomCode } from './constants'
+import { ROOM_PREFIX, generateRoomCode, ICE_SERVERS } from './constants'
 import { mapPeerError } from './peerErrors'
 
 type Status = 'idle' | 'requesting-camera' | 'connecting' | 'live' | 'error'
@@ -64,7 +64,7 @@ export default function HostPanel({ onBack }: { onBack: () => void }) {
       setStatus('connecting')
       const { default: Peer } = await import('peerjs')
       const newCode = generateRoomCode()
-      const peer = new Peer(ROOM_PREFIX + newCode)
+      const peer = new Peer(ROOM_PREFIX + newCode, { config: { iceServers: ICE_SERVERS } })
       peerRef.current = peer
 
       peer.on('open', () => {

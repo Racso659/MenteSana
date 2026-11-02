@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { MediaConnection, default as PeerType } from 'peerjs'
 import { ArrowLeft, Volume2, VolumeX, Maximize, PlugZap, LogOut } from 'lucide-react'
-import { ROOM_PREFIX, normalizeCode } from './constants'
+import { ROOM_PREFIX, normalizeCode, ICE_SERVERS } from './constants'
 import { mapPeerError } from './peerErrors'
 
 type Status = 'idle' | 'connecting' | 'connected' | 'error'
@@ -37,7 +37,7 @@ export default function ViewerPanel({ initialCode, onBack }: { initialCode: stri
     setStatus('connecting')
     try {
       const { default: Peer } = await import('peerjs')
-      const peer = new Peer()
+      const peer = new Peer({ config: { iceServers: ICE_SERVERS } })
       peerRef.current = peer
 
       peer.on('open', () => {
