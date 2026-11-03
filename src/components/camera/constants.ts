@@ -21,19 +21,24 @@ export function normalizeCode(raw: string): string {
 // STUN por sí solo basta cuando ambos dispositivos están en la misma WiFi.
 // Fuera de casa (datos móviles, redes con NAT simétrico o firewalls
 // estrictos) WebRTC necesita un relay TURN para completar la conexión.
-// Open Relay Project ofrece un TURN gratuito con credenciales públicas de
-// demostración: el video sigue cifrado extremo a extremo (DTLS-SRTP), el
-// relay solo mueve paquetes opacos, pero no hay garantía de disponibilidad.
-// Para un uso más serio, sustituye esto por un TURN propio o de pago.
-export const ICE_SERVERS: RTCIceServer[] = [
+// El TURN se configura en el servidor (ver src/app/api/ice/route.ts); el
+// video sigue cifrado extremo a extremo (DTLS-SRTP), el relay solo mueve
+// paquetes opacos. (El antiguo relay público openrelay.metered.ca ya no
+// existe: su DNS apunta a 192.0.2.1.)
+export const STUN_SERVERS: RTCIceServer[] = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:openrelay.metered.ca:80' },
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  {
-    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
 ]
+
+export async function getIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const res = await fetch('/api/ice', { cache: 'no-store' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const data = (await res.json()) as { iceServers: RTCIceServer[]; hasTurn: boolean }
+    if (!data.hasTurn) console.warn('Sin TURN configurado: la conexión fuera de la misma red puede fallar.')
+    return data.iceServers
+  } catch (err) {
+    console.warn('No se pudo obtener /api/ice, se usa solo STUN:', err)
+    return STUN_SERVERS
+  }
+}

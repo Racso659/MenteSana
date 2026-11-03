@@ -68,12 +68,30 @@ necesitas que la *página* (no el video) se cargue desde una URL pública:
 El video sigue viajando **directo entre los dos dispositivos** (P2P, cifrado
 extremo a extremo con DTLS-SRTP); Vercel solo sirve el código de la página,
 nunca ve el video. Para que la conexión P2P también funcione a través de
-redes móviles o firewalls estrictos (no solo WiFi doméstica), el proyecto
-incluye STUN + un TURN de respaldo (`src/components/camera/constants.ts`,
-`ICE_SERVERS`) usando el relay gratuito de Open Relay Project — las
-credenciales son públicas y compartidas, así que si cambia su disponibilidad
-o quieres algo más robusto/privado, sustitúyelas por un TURN propio (p. ej.
-[coturn](https://github.com/coturn/coturn) autogestionado) o uno de pago.
+redes móviles o firewalls estrictos (no solo WiFi doméstica), WebRTC
+necesita un relay TURN. La página pide los servidores ICE a `/api/ice`
+(`src/app/api/ice/route.ts`), que lee las credenciales de variables de
+entorno. Configura **una** de estas opciones en Vercel → Settings →
+Environment Variables (para Production y Preview) y vuelve a desplegar:
+
+- **Cloudflare TURN** (recomendado, 1 TB/mes gratis): en el panel de
+  Cloudflare → Realtime → TURN Server → crea una clave y copia
+  `CLOUDFLARE_TURN_KEY_ID` y `CLOUDFLARE_TURN_KEY_API_TOKEN`.
+- **TURN con credenciales fijas** (plan gratuito de
+  [Metered](https://www.metered.ca/tools/openrelay/), un
+  [coturn](https://github.com/coturn/coturn) propio…):
+  `TURN_URLS` (separadas por comas, p. ej.
+  `turn:global.relay.metered.ca:80,turns:global.relay.metered.ca:443?transport=tcp`),
+  `TURN_USERNAME`, `TURN_CREDENTIAL`.
+
+Puedes comprobarlo abriendo `https://tu-sitio/api/ice`: debe devolver
+`"hasTurn": true`. El antiguo relay público `openrelay.metered.ca` ya no
+existe, así que no sirve como respaldo.
+
+> Las URLs de *preview* de Vercel (`…-git-<rama>-….vercel.app`) tienen
+> **Deployment Protection** activado por defecto y piden iniciar sesión en
+> Vercel; desde el celular usa el dominio de producción o desactiva esa
+> protección en Settings → Deployment Protection.
 
 > **Nota de seguridad**: cualquiera que conozca (o adivine) el código de 6
 > caracteres mientras el portátil está transmitiendo podría conectarse y ver
